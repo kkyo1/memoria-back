@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HistoricalEntity {
+  id       String  @id
+  name     String
+  category String
+  type     String?
+  years    String?
+
+  latitude  Float?
+  longitude Float?
+
+  image           String?
+  shortBio        String? @map("short_bio")
+  fullBio         String? @map("full_bio")
+  artisticDetails String? @map("artistic_details")
+  importance      String?
+  sector          String?
+
+  sources Json @default("[]")
+
+  routeStops     GuidedRouteStop[]
+  documentChunks DocumentChunk[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("historical_entities")
+}
+
+model GuidedRoute {
+  id          String  @id
+  title       String
+  duration    String?
+  distance    String?
+  category    String?
+  description String?
+
+  stops GuidedRouteStop[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("guided_routes")
+}
+
+model GuidedRouteStop {
+  id Int @id @default(autoincrement())
+
+  routeId  String  @map("route_id")
+  entityId String? @map("entity_id")
+
+  position Int
+  title    String
+  type     String?
+  sector   String?
+
+  route  GuidedRoute       @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  entity HistoricalEntity? @relation(fields: [entityId], references: [id], onDelete: SetNull)
+
+  @@unique([routeId, position])
+  @@index([routeId])
+  @@map("guided_route_stops")
+}
+
+model Document {
+  id     String          @id @default(uuid())
+  title  String
+  author String?
+  chunks DocumentChunk[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  entityId   String?  @map("entity_id")
+  page       Int?
+  content    String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  entity   HistoricalEntity? @relation(fields: [entityId], references: [id], onDelete: SetNull)
+
+  @@index([documentId])
+  @@index([entityId])
+  @@map("document_chunks")
+}

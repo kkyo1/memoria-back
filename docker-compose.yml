@@ -1,0 +1,25 @@
+services:
+  temporal:
+    image: temporalio/temporal:latest
+    container_name: memoria-temporal
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    command: server start-dev
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: memoria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: memoria
+      POSTGRES_PASSWORD: memoria_dev
+      POSTGRES_DB: memoria
+    ports:
+      - "5432:5432"
+    volumes:
+      - memoria_pg18_data:/var/lib/postgresql
+
+volumes:
+  memoria_pg18_data:
